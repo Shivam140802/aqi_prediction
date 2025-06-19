@@ -1,0 +1,1 @@
+2025-06-19 15:44:57,920 43 root - ERROR - Error inserting data into MongoDB: key 'PM2.5' must not contain '.'
