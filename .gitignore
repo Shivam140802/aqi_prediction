@@ -1,8 +1,8 @@
-venv
+venv/
 .env
 
-# csv files
-city_hour.csv
-station_day.csv
-station_hour.csv
-stations.csv
+# Ignore all CSVs in kaggle_api_data folder
+kaggle_api_data/*.csv
+
+# But allow city_day.csv only
+!kaggle_api_data/city_day.csv
