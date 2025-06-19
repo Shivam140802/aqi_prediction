@@ -1,0 +1,2 @@
+2025-06-19 17:10:40,215 35 root - INFO - Downloaded and extracted city_day.csv from Kaggle to kaggle_api_data
+2025-06-19 17:10:51,912 57 root - INFO - 29531 records inserted into MongoDB

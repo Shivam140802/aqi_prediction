@@ -1,0 +1,2 @@
+2025-06-19 17:02:36,868 35 root - INFO - Downloaded and extracted city_day.csv from Kaggle to kaggle_api_data
+2025-06-19 17:02:36,925 49 root - ERROR - Error reading CSV file: 'utf-8' codec can't decode byte 0xfc in position 12: invalid start byte

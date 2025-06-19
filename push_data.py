@@ -2,14 +2,13 @@ import os
 import sys
 from dotenv import load_dotenv
 import certifi
-import kaggle
+import zipfile
 
 load_dotenv()
 
 mongo_db_url = os.getenv("MONGO_DB_URL")
 ca = certifi.where()
 
-# Set Kaggle credentials
 os.environ["KAGGLE_USERNAME"] = os.getenv("KAGGLE_USERNAME")
 os.environ["KAGGLE_KEY"] = os.getenv("KAGGLE_KEY")
 
@@ -29,16 +28,18 @@ class DataExtractor:
 
     def download_from_kaggle(self, dataset: str, file_name: str, save_path: str):
         try:
+            import kaggle
             kaggle.api.authenticate()
-            kaggle.api.dataset_download_file(dataset=dataset, file_name=file_name, path=save_path, unzip=True)
-            logger.info(f"Downloaded {file_name} from Kaggle to {save_path}")
+            kaggle.api.dataset_download_files(dataset=dataset, path=save_path, unzip=True)
+            logger.info(f"Downloaded and extracted {file_name} from Kaggle to {save_path}")
+        
         except Exception as e:
             logger.error(f"Error downloading data from Kaggle: {e}")
             raise CustomException(e, sys)
 
     def csv_to_json(self, csv_file_path: str):
         try:
-            df = pd.read_csv(csv_file_path)
+            df = pd.read_csv(csv_file_path, encoding="ISO-8859-1")
             df.columns = df.columns.str.replace('.', '_', regex=False)
             df = df.where(pd.notna(df), None)
             json_data = df.to_dict(orient='records')
@@ -62,7 +63,7 @@ class DataExtractor:
 if __name__ == '__main__':
     DATASET = "rohanrao/air-quality-data-in-india"
     FILE_NAME = "city_day.csv"
-    SAVE_PATH = "data"
+    SAVE_PATH = "kaggle_api_data"
     CSV_FILE_PATH = os.path.join(SAVE_PATH, FILE_NAME)
     DATABASE = "ShivamAI"
     COLLECTIONS = "AQI_data"

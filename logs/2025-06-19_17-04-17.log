@@ -1,0 +1,3 @@
+2025-06-19 17:04:24,344 35 root - INFO - Downloaded and extracted city_day.csv from Kaggle to kaggle_api_data
+2025-06-19 17:04:24,395 49 root - ERROR - Error reading CSV file: Error tokenizing data. C error: Expected 1 fields in line 3, saw 4
+
