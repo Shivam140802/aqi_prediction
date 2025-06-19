@@ -1,2 +1,8 @@
 venv
 .env
+
+# csv files
+city_hour.csv
+station_day.csv
+station_hour.csv
+station.csv
