@@ -2,7 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 import certifi
-import zipfile
+import shutil
 
 load_dotenv()
 
@@ -24,7 +24,7 @@ class DataExtractor:
             self.mongo_client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
         except Exception as e:
             logger.error(f"Error connecting to MongoDB: {e}")
-            raise CustomException(e, sys)
+            raise CustomException(e, sys) from e
 
     def download_from_kaggle(self, dataset: str, file_name: str, save_path: str):
         try:
@@ -35,18 +35,17 @@ class DataExtractor:
         
         except Exception as e:
             logger.error(f"Error downloading data from Kaggle: {e}")
-            raise CustomException(e, sys)
+            raise CustomException(e, sys) from e
 
     def csv_to_json(self, csv_file_path: str):
         try:
             df = pd.read_csv(csv_file_path, encoding="ISO-8859-1")
             df.columns = df.columns.str.replace('.', '_', regex=False)
             df = df.where(pd.notna(df), None)
-            json_data = df.to_dict(orient='records')
-            return json_data
+            return df.to_dict(orient='records')
         except Exception as e:
             logger.error(f"Error reading CSV file: {e}")
-            raise CustomException(e, sys)
+            raise CustomException(e, sys) from e
 
     def insert_data_mongodb(self, records, database, collections):
         try:
@@ -57,7 +56,7 @@ class DataExtractor:
             return len(records)
         except Exception as e:
             logger.error(f"Error inserting data into MongoDB: {e}")
-            raise CustomException(e, sys)
+            raise CustomException(e, sys) from e
 
 
 if __name__ == '__main__':
@@ -73,3 +72,9 @@ if __name__ == '__main__':
     records = aqi_obj.csv_to_json(csv_file_path=CSV_FILE_PATH)
     no_of_records = aqi_obj.insert_data_mongodb(records, DATABASE, COLLECTIONS)
     print(no_of_records)
+    
+    try:
+        shutil.rmtree(SAVE_PATH)
+        print(f"Directory '{SAVE_PATH}' deleted successfully.")
+    except Exception as e:
+        print(f"Error deleting directory: {e}")
