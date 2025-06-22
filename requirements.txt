@@ -9,4 +9,6 @@ dnspython==1.16.0
 kaggle
 ipykernel
 certifi
+seaborn
+scikit-learn
 # -e .

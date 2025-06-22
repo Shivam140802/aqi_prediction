@@ -1,0 +1,6 @@
+2025-06-22 16:31:54,465 19 root - INFO - Connected to MongoDB.
+2025-06-22 16:31:59,461 29 root - INFO - Loaded 29531 records from MongoDB.
+2025-06-22 16:31:59,565 54 root - INFO - Preprocessing started.
+2025-06-22 16:32:01,661 101 root - INFO - Preprocessing completed.
+2025-06-22 16:32:01,947 42 root - INFO - Train and test datasets saved to artifact folder.
+2025-06-22 16:32:01,949 114 root - INFO - ETL pipeline executed successfully.
