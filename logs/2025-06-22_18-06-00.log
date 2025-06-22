@@ -1,0 +1,7 @@
+2025-06-22 18:06:00,952 15 root - INFO - MongoDB client initialized.
+2025-06-22 18:06:00,953 24 root - INFO - Accessed collection 'AQI_data' in database 'ShivamAI'.
+2025-06-22 18:06:03,186 23 root - INFO - Loaded 29531 records from MongoDB.
+2025-06-22 18:06:03,297 48 root - INFO - Preprocessing started.
+2025-06-22 18:06:05,083 95 root - INFO - Preprocessing completed.
+2025-06-22 18:06:05,306 36 root - INFO - Train and test datasets saved to artifact folder.
+2025-06-22 18:06:05,308 108 root - INFO - ETL pipeline executed successfully.

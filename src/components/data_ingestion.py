@@ -1,22 +1,16 @@
 import pandas as pd
 import os
 import sys
-from pymongo import MongoClient
-from dotenv import load_dotenv
-import certifi
 from sklearn.model_selection import train_test_split
 from src.exception.exception import CustomException
 from src.logging.logger import logger
+from src.utils.utils import MongoDBUtils
 
 class LoadAndSaveData:
     def __init__(self):
         try:
-            load_dotenv()
-            self.mongo_db_url=os.getenv("MONGO_DB_URL")
-            self.client=MongoClient(self.mongo_db_url, tls=True, tlsCAFile=certifi.where())
-            self.db=self.client["ShivamAI"]
-            self.collection=self.db["AQI_data"]
-            logger.info("Connected to MongoDB.")
+            mongo_utils = MongoDBUtils()
+            self.collection = mongo_utils.get_collection("ShivamAI", "AQI_data")
         except Exception as e:
             logger.error("Error while connecting to MongoDB.")
             raise CustomException("MongoDB connection failed", sys) from e
