@@ -1,0 +1,14 @@
+2025-06-26 17:21:02,091 10 root - INFO - Starting ETL pipeline...
+2025-06-26 17:21:02,219 15 root - INFO - MongoDB client initialized.
+2025-06-26 17:21:02,219 24 root - INFO - Accessed collection 'AQI_data' in database 'ShivamAI'.
+2025-06-26 17:21:04,881 23 root - INFO - Loaded 29531 records from MongoDB.
+2025-06-26 17:21:05,009 42 root - INFO - Preprocessing started.
+2025-06-26 17:21:06,496 111 root - INFO - Preprocessing completed.
+2025-06-26 17:21:06,689 131 root - INFO - Train and test datasets saved successfully.
+2025-06-26 17:21:06,690 19 root - INFO - ETL pipeline completed.
+2025-06-26 17:21:06,699 27 root - INFO - Starting Training pipeline...
+2025-06-26 17:21:06,699 53 root - INFO - Starting training pipeline...
+2025-06-26 17:21:22,210 37 root - INFO - Model training completed.
+2025-06-26 17:21:22,215 46 root - INFO - Model saved to artifact/model.pkl
+2025-06-26 17:21:22,215 57 root - INFO - Training pipeline finished successfully.
+2025-06-26 17:21:22,216 30 root - INFO - Training pipeline completed.

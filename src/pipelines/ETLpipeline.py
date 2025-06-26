@@ -1,23 +1,23 @@
-import pandas as pd
 import os
 import sys
-from sklearn.model_selection import train_test_split
+import pandas as pd
 from src.exception.exception import CustomException
 from src.logging.logger import logger
 from src.utils.utils import MongoDBUtils
+from sklearn.model_selection import train_test_split
 
-class LoadAndSaveData:
+class DataLoader:
     def __init__(self):
         try:
-            mongo_utils = MongoDBUtils()
-            self.collection = mongo_utils.get_collection("ShivamAI", "AQI_data")
+            mongo_utils=MongoDBUtils()
+            self.collection=mongo_utils.get_collection("ShivamAI", "AQI_data")
         except Exception as e:
             logger.error("Error while connecting to MongoDB.")
             raise CustomException("MongoDB connection failed", sys) from e
 
-    def load_data(self):
+    def load(self):
         try:
-            data = list(self.collection.find())
+            data=list(self.collection.find())
             if not data:
                 logger.warning("No documents found in MongoDB collection.")
             logger.info(f"Loaded {len(data)} records from MongoDB.")
@@ -26,89 +26,109 @@ class LoadAndSaveData:
             logger.error("Error while loading data from MongoDB.")
             raise CustomException("Data loading failed", sys) from e
 
-    def save_data(self, df, artifact_path="artifact"):
-        try:
-            os.makedirs(artifact_path, exist_ok=True)
-            df = df.drop(columns=['Date', 'Year', 'Month'], errors='ignore')
-            train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
-            train_df.to_csv(os.path.join(artifact_path, "train.csv"), index=False)
-            test_df.to_csv(os.path.join(artifact_path, "test.csv"), index=False)
-            logger.info("Train and test datasets saved to artifact folder.")
-        except Exception as e:
-            logger.error("Error while saving data to CSV.")
-            raise CustomException("Data saving failed", sys) from e
 
-class TransformData:
+import pandas as pd
+import sys
+from src.exception.exception import CustomException
+from src.logging.logger import logger
+
+class DataTransformer:
     def __init__(self, df):
         self.df = df
 
-    def preprocess(self):
+    def transform(self):
         try:
             df = self.df.copy()
             logger.info("Preprocessing started.")
 
+            # Drop unwanted columns
             if '_id' in df.columns:
                 df.drop(columns=['_id'], inplace=True)
             df.drop(columns=['AQI_Bucket'], inplace=True, errors='ignore')
 
+            # Replace minor cities with "Other Cities"
             city_counts = df['City'].value_counts()
             threshold = 1000
             minor_cities = city_counts[city_counts < threshold].index
             df['City'] = df['City'].apply(lambda x: 'Other Cities' if x in minor_cities else x)
 
+            # Convert Date to datetime and sort
             df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
             df.sort_values(by=['City', 'Date'], inplace=True)
 
+            # Interpolation grouped by City
             def interpolate_city_group(group):
                 try:
-                    city = group.name 
+                    city=group.name
                     group = group.set_index('Date')
+                    group = group.sort_index()
                     numeric_cols = group.select_dtypes(include='number')
                     non_numeric_cols = group.select_dtypes(exclude='number').drop(columns='City', errors='ignore')
                     numeric_filled = numeric_cols.interpolate(method='time', limit_direction='both')
-                    filled_group = pd.concat([non_numeric_cols, numeric_filled], axis=1)
+                    non_numeric_filled = non_numeric_cols.ffill().bfill()
+                    filled_group = pd.concat([non_numeric_filled, numeric_filled], axis=1)
                     filled_group['City'] = city
                     return filled_group.reset_index()
                 except Exception as e:
                     logger.error("Interpolation failed for a group.")
                     raise CustomException("Interpolation error", sys) from e
 
+            df['City'] = df['City'].ffill().bfill()
             df = df.groupby('City', group_keys=False).apply(interpolate_city_group, include_groups=False).reset_index(drop=True)
 
-
+            # Extract Year and Month
             df['Year'] = df['Date'].dt.year
             df['Month'] = df['Date'].dt.month
             numeric_cols = df.select_dtypes(include='number').columns
 
-            # filling missing values with median of the respective city, year, and month
-            df[numeric_cols] = df.groupby(['City', 'Year', 'Month'])[numeric_cols].transform(lambda x: x if x.dropna().empty else x.fillna(x.median()))
-
-            # filling missing values with median of the respective city and year
-            df[numeric_cols] = df.groupby(['City', 'Year'])[numeric_cols].transform(lambda x: x if x.dropna().empty else x.fillna(x.median()))
-            
-            # filling missing values with median of the respective city
-            df[numeric_cols] = df.groupby(['City'])[numeric_cols].transform(lambda x: x if x.dropna().empty else x.fillna(x.median()))
-            
-            # filling missing values with median of the entire dataset
+            # Filling missing values with median [(city, year, month), (city, year), (city) ,(overall)]
+            df[numeric_cols] = df.groupby(['City', 'Year', 'Month'])[numeric_cols].transform(lambda x: x.fillna(x.median()) if not x.dropna().empty else x)
+            df[numeric_cols] = df.groupby(['City', 'Year'])[numeric_cols].transform(lambda x: x.fillna(x.median()) if not x.dropna().empty else x)
+            df[numeric_cols] = df.groupby(['City'])[numeric_cols].transform(lambda x: x.fillna(x.median()) if not x.dropna().empty else x)
             df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
 
+            # Downsample "Other Cities"
+            def downsample_city(df_city, target_count):
+                df_city = df_city.sort_values('Date')
+                total = len(df_city)
+                if total <= target_count:
+                    return df_city
+                step = total / target_count
+                indices = [int(i * step) for i in range(target_count)]
+                return df_city.iloc[indices]
+
+            other_cities_df = df[df['City'] == 'Other Cities']
+            rest_df = df[df['City'] != 'Other Cities']
+            downsampled_other = downsample_city(other_cities_df, 2000)
+
+            # Concatenate and sort again
+            df = pd.concat([rest_df, downsampled_other], ignore_index=True)
+            df = df.sort_values(by=['City', 'Date']).reset_index(drop=True)
+
+            # Drop Year and Month columns
+            df.drop(columns=['Date', 'Year', 'Month', 'YearMonth'], inplace=True, errors='ignore')
+            
             logger.info("Preprocessing completed.")
             return df
+
         except Exception as e:
             logger.error("Preprocessing failed.")
             raise CustomException("Preprocessing error", sys) from e
 
-def main():
-    try:
-        loader = LoadAndSaveData()
-        raw_df = loader.load_data()
-        transformer = TransformData(raw_df)
-        processed_df = transformer.preprocess()
-        loader.save_data(processed_df)
-        logger.info("ETL pipeline executed successfully.")
-    except Exception as e:
-        logger.critical("ETL pipeline failed.")
-        raise CustomException("Pipeline failed", sys) from e
 
-if __name__ == "__main__":
-    main()
+class DataSaver:
+    def __init__(self, artifact_path="artifact"):
+        self.artifact_path = artifact_path
+        os.makedirs(artifact_path, exist_ok=True)
+
+    def save(self, df):
+        try:
+            df = df.drop(columns=['Date', 'Year', 'Month'], errors='ignore')
+            train, test = train_test_split(df, test_size=0.2, random_state=42)
+            train.to_csv(os.path.join(self.artifact_path, "train.csv"), index=False)
+            test.to_csv(os.path.join(self.artifact_path, "test.csv"), index=False)
+
+            logger.info("Train and test datasets saved successfully.")
+        except Exception as e:
+            logger.error("Error while saving data.")
+            raise CustomException("Saving error", sys) from e
