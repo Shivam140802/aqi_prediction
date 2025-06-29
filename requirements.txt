@@ -12,4 +12,7 @@ certifi
 seaborn
 scikit-learn
 flask
+twine
+setuptools
+wheel
 # -e .

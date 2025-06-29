@@ -26,8 +26,8 @@ setup(
     author="Shivam Gupta",
     author_email="sg4781778@gmail.com",
     description="AQI Prediction using CatBoost and Flask",
-    packages=find_packages(exclude=["tests", "venv"]),
+    packages=find_packages(),
     install_requires=get_requirements(),
     include_package_data=True,
-    python_requires=">=3.8",
+    python_requires=">=3.11",
 )
