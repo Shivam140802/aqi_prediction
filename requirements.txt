@@ -11,4 +11,5 @@ ipykernel
 certifi
 seaborn
 scikit-learn
+flask
 # -e .

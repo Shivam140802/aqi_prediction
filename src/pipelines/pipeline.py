@@ -25,7 +25,7 @@ def run_etl():
 def run_training():
     try:
         logger.info("Starting Training pipeline...")
-        trainer=TrainPipeline("artifact/train.csv","artifact/test.csv")
+        trainer=TrainPipeline("artifacts/train.csv","artifacts/test.csv")
         trainer.run()
         logger.info("Training pipeline completed.")
     except Exception as e:

@@ -39,7 +39,7 @@ class TrainPipeline:
             logger.error("Error during model training.")
             raise CustomException("Error in model training", sys) from e
 
-    def save_model(self, output_path='artifact/model.pkl'):
+    def save_model(self, output_path='artifacts/model.pkl'):
         try:
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             joblib.dump(self.model, output_path)

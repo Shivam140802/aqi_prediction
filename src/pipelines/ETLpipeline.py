@@ -42,15 +42,8 @@ class DataTransformer:
             logger.info("Preprocessing started.")
 
             # Drop unwanted columns
-            if '_id' in df.columns:
-                df.drop(columns=['_id'], inplace=True)
+            df.drop(columns=['_id'], inplace=True, errors='ignore')
             df.drop(columns=['AQI_Bucket'], inplace=True, errors='ignore')
-
-            # Replace minor cities with "Other Cities"
-            city_counts = df['City'].value_counts()
-            threshold = 1000
-            minor_cities = city_counts[city_counts < threshold].index
-            df['City'] = df['City'].apply(lambda x: 'Other Cities' if x in minor_cities else x)
 
             # Convert Date to datetime and sort
             df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
@@ -87,27 +80,8 @@ class DataTransformer:
             df[numeric_cols] = df.groupby(['City'])[numeric_cols].transform(lambda x: x.fillna(x.median()) if not x.dropna().empty else x)
             df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
 
-            # Downsample "Other Cities"
-            def downsample_city(df_city, target_count):
-                df_city = df_city.sort_values('Date')
-                total = len(df_city)
-                if total <= target_count:
-                    return df_city
-                step = total / target_count
-                indices = [int(i * step) for i in range(target_count)]
-                return df_city.iloc[indices]
-
-            other_cities_df = df[df['City'] == 'Other Cities']
-            rest_df = df[df['City'] != 'Other Cities']
-            downsampled_other = downsample_city(other_cities_df, 2000)
-
-            # Concatenate and sort again
-            df = pd.concat([rest_df, downsampled_other], ignore_index=True)
-            df = df.sort_values(by=['City', 'Date']).reset_index(drop=True)
-
             # Drop Year and Month columns
-            df.drop(columns=['Date', 'Year', 'Month', 'YearMonth'], inplace=True, errors='ignore')
-            
+            df.drop(columns=['Date', 'Year', 'Month', 'YearMonth', 'City'], inplace=True, errors='ignore')
             logger.info("Preprocessing completed.")
             return df
 
@@ -117,13 +91,12 @@ class DataTransformer:
 
 
 class DataSaver:
-    def __init__(self, artifact_path="artifact"):
+    def __init__(self, artifact_path="artifacts"):
         self.artifact_path = artifact_path
         os.makedirs(artifact_path, exist_ok=True)
 
     def save(self, df):
         try:
-            df = df.drop(columns=['Date', 'Year', 'Month'], errors='ignore')
             train, test = train_test_split(df, test_size=0.2, random_state=42)
             train.to_csv(os.path.join(self.artifact_path, "train.csv"), index=False)
             test.to_csv(os.path.join(self.artifact_path, "test.csv"), index=False)
