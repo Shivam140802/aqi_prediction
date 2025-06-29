@@ -21,7 +21,7 @@ def get_requirements(filename: str = "requirements.txt") -> List[str]:
         return []
 
 setup(
-    name="aqi-prediction",
+    name="aqi-prediction-sg",
     version="0.0.1",
     author="Shivam Gupta",
     author_email="sg4781778@gmail.com",

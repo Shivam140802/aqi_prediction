@@ -15,4 +15,5 @@ flask
 twine
 setuptools
 wheel
+build
 # -e .

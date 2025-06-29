@@ -6,3 +6,8 @@ kaggle_api_data/*.csv
 
 # But allow city_day.csv only
 !kaggle_api_data/city_day.csv
+
+# Python packaging
+*.egg-info/
+dist/
+build/
