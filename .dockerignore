@@ -1,0 +1,14 @@
+# Python virtual environments
+venv/
+.env
+__pycache__/
+*.pyc
+
+# Git and Docker
+.git/
+.gitignore
+.dockerignore
+
+#extra files
+prototype/
+logs/
