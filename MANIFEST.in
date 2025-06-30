@@ -1,0 +1,23 @@
+# Include essential files
+include README.md
+include requirements.txt
+
+# Include all HTML templates
+recursive-include templates *.html
+
+# Include all source files
+recursive-include src *.py
+
+# Optional: Include app.py if it's outside src
+include app.py
+
+# Exclude unnecessary files/folders
+exclude .env
+exclude Dockerfile
+exclude .gitignore
+
+prune venv
+prune logs
+prune artifacts
+prune prototype
+prune .github
