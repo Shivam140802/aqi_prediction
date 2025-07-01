@@ -16,4 +16,5 @@ twine
 setuptools
 wheel
 build
+gunicorn
 # -e .
