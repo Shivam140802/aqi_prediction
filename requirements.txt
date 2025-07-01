@@ -17,4 +17,5 @@ setuptools
 wheel
 build
 gunicorn
+catboost
 # -e .
