@@ -1,4 +1,4 @@
-name: workflow
+name: deployment to ec2
 
 on:
   push:
